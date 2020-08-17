@@ -1,0 +1,12 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="CJCMCG_Tool.MainWindow"
+        Title="CJCMCG Tool" Width="300" Height="110" CanResize="False">
+  <Grid Margin="10,10,10,10" Width="280" Height="90">
+    <Button Content="Select a file" Width="280" Height="40" Margin="0,0,0,0" VerticalAlignment="Top" Click="SelectFile" x:Name="sel"></Button>
+    <Button Content="Start" IsEnabled="False" Width="280" Height="40" Margin="0,0,0,0" VerticalAlignment="Bottom" x:Name="progress" Click="Outputfile"></Button>
+  </Grid>
+</Window>
