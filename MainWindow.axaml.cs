@@ -12,11 +12,8 @@ using SharpCompress.Compressors.Xz;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,13 +37,15 @@ namespace CJCMCG_Tool
             AvaloniaXamlLoader.Load(this);
         }
 
-        static string filein, fileout;
+        private static string filein, fileout;
 
-        async private void SelectFile(object s, RoutedEventArgs e)
+        private async void SelectFile(object s, RoutedEventArgs e)
         {
             OpenFileDialog open = new OpenFileDialog();
-            FileDialogFilter filter = new FileDialogFilter();
-            filter.Name = "Midi file or zipped file";
+            FileDialogFilter filter = new FileDialogFilter
+            {
+                Name = "Midi file or zipped file"
+            };
             filter.Extensions.Add("mid");
             filter.Extensions.Add("zip");
             filter.Extensions.Add("7z");
@@ -56,34 +55,47 @@ namespace CJCMCG_Tool
             filter.Extensions.Add("rar");
             open.Filters.Add(filter);
             open.AllowMultiple = false;
-            var show = await open.ShowAsync(this);
+            string[] show = await open.ShowAsync(this);
             if (show.Length > 0)
             {
                 filein = show[0];
                 Button button = (Button)s;
-                if (filein.Length < 30) button.Content = filein;
-                else button.Content = "..." + filein.Substring(filein.Length - 30);
+                if (filein.Length < 30)
+                {
+                    button.Content = filein;
+                }
+                else
+                {
+                    button.Content = "..." + filein.Substring(filein.Length - 30);
+                }
+
                 Button butt = this.FindControl<Button>("progress");
                 butt.IsEnabled = true;
             }
         }
 
-        async private void Outputfile(object s, RoutedEventArgs e)
+        private async void Outputfile(object s, RoutedEventArgs e)
         {
             SaveFileDialog save = new SaveFileDialog();
-            FileDialogFilter filter = new FileDialogFilter();
-            filter.Name = "CJCMCG file";
+            FileDialogFilter filter = new FileDialogFilter
+            {
+                Name = "CJCMCG file"
+            };
             filter.Extensions.Add("cjcmcg");
             save.Filters.Add(filter);
-            var show = await save.ShowAsync(this);
-            if (show == null) return;
+            string show = await save.ShowAsync(this);
+            if (show == null)
+            {
+                return;
+            }
+
             fileout = show;
             progress = this.FindControl<Button>("progress");
             Thread thread = new Thread(Render);
             thread.Start();
         }
 
-        struct pairli
+        private struct pairli
         {
             public long x;
             public int y;
@@ -134,12 +146,13 @@ namespace CJCMCG_Tool
                 }
             }
         }
-        struct pairls
+
+        private struct pairls
         {
             public long x;
-            public String y;
+            public string y;
             public int trk, cnt;
-            public pairls(long a, String b, int c, int d)
+            public pairls(long a, string b, int c, int d)
             {
                 x = a;
                 y = b;
@@ -186,21 +199,24 @@ namespace CJCMCG_Tool
             }
         }
 
-        static bool CanDec(string s)
+        private static bool CanDec(string s)
         {
             return s.EndsWith(".mid") || s.EndsWith(".xz") || s.EndsWith(".zip") || s.EndsWith(".7z") || s.EndsWith(".rar") || s.EndsWith(".tar") || s.EndsWith(".gz");
         }
-        static Stream AddXZLayer(Stream input)
+
+        private static Stream AddXZLayer(Stream input)
         {
             try
             {
-                Process xz = new Process();
-                xz.StartInfo = new ProcessStartInfo("xz", "-dc --threads=0")
+                Process xz = new Process
                 {
-                    RedirectStandardOutput = true,
-                    RedirectStandardInput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
+                    StartInfo = new ProcessStartInfo("xz", "-dc --threads=0")
+                    {
+                        RedirectStandardOutput = true,
+                        RedirectStandardInput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
                 };
                 xz.Start();
                 Task.Run(() =>
@@ -216,10 +232,11 @@ namespace CJCMCG_Tool
                 return new XZStream(input);
             }
         }
-        static Stream AddZipLayer(Stream input)
+
+        private static Stream AddZipLayer(Stream input)
         {
-            var zip = ZipArchive.Open(input);
-            foreach (var entry in zip.Entries)
+            ZipArchive zip = ZipArchive.Open(input);
+            foreach (ZipArchiveEntry entry in zip.Entries)
             {
                 if (CanDec(entry.Key))
                 {
@@ -229,10 +246,11 @@ namespace CJCMCG_Tool
             }
             throw new Exception("No compatible file found in the .zip");
         }
-        static Stream AddRarLayer(Stream input)
+
+        private static Stream AddRarLayer(Stream input)
         {
-            var zip = RarArchive.Open(input);
-            foreach (var entry in zip.Entries)
+            RarArchive zip = RarArchive.Open(input);
+            foreach (RarArchiveEntry entry in zip.Entries)
             {
                 if (CanDec(entry.Key))
                 {
@@ -242,10 +260,11 @@ namespace CJCMCG_Tool
             }
             throw new Exception("No compatible file found in the .rar");
         }
-        static Stream Add7zLayer(Stream input)
+
+        private static Stream Add7zLayer(Stream input)
         {
-            var zip = SevenZipArchive.Open(input);
-            foreach (var entry in zip.Entries)
+            SevenZipArchive zip = SevenZipArchive.Open(input);
+            foreach (SevenZipArchiveEntry entry in zip.Entries)
             {
                 if (CanDec(entry.Key))
                 {
@@ -255,10 +274,11 @@ namespace CJCMCG_Tool
             }
             throw new Exception("No compatible file found in the .7z");
         }
-        static Stream AddTarLayer(Stream input)
+
+        private static Stream AddTarLayer(Stream input)
         {
-            var zip = TarArchive.Open(input);
-            foreach (var entry in zip.Entries)
+            TarArchive zip = TarArchive.Open(input);
+            foreach (TarArchiveEntry entry in zip.Entries)
             {
                 if (CanDec(entry.Key))
                 {
@@ -268,10 +288,11 @@ namespace CJCMCG_Tool
             }
             throw new Exception("No compatible file found in the .tar");
         }
-        static Stream AddGZLayer(Stream input)
+
+        private static Stream AddGZLayer(Stream input)
         {
-            var zip = GZipArchive.Open(input);
-            foreach (var entry in zip.Entries)
+            GZipArchive zip = GZipArchive.Open(input);
+            foreach (GZipArchiveEntry entry in zip.Entries)
             {
                 if (CanDec(entry.Key))
                 {
@@ -320,18 +341,23 @@ namespace CJCMCG_Tool
                 }
             }
         }
-        static int toint(int x)
+
+        private static int toint(int x)
         {
             return x < 0 ? x + 256 : x;
         }
 
-        Button progress;
+        private Button progress;
 
-        async private void Render()
+        private async void Render()
         {
             try
             {
-                if (!fileout.EndsWith(".cjcmcg")) fileout += ".cjcmcg";
+                if (!fileout.EndsWith(".cjcmcg"))
+                {
+                    fileout += ".cjcmcg";
+                }
+
                 Stream inppp = File.Open(filein, FileMode.Open, FileAccess.Read, FileShare.Read);
                 while (!filein.EndsWith(".mid"))
                 {
@@ -373,7 +399,11 @@ namespace CJCMCG_Tool
                 int ReadByte()
                 {
                     int b = inpp.ReadByte();
-                    if (b == -1) throw new Exception("Unexpected file end");
+                    if (b == -1)
+                    {
+                        throw new Exception("Unexpected file end");
+                    }
+
                     return b;
                 }
                 for (int i = 0; i < 4; ++i)
@@ -389,15 +419,19 @@ namespace CJCMCG_Tool
                 int trkcnt, resol;
                 trkcnt = (toint(ReadByte()) * 256) + toint(ReadByte());
                 resol = (toint(ReadByte()) * 256) + toint(ReadByte());
-                ArrayList bpm = new ArrayList();
-                bpm.Add(new pairli(0, 500000, -1, 0));
+                ArrayList bpm = new ArrayList
+                {
+                    new pairli(0, 500000, -1, 0)
+                };
                 long noteall = 0;
                 int nowtrk = 1;
                 int alltic = 0;
                 int allticreal = 0;
                 List<long> nts = new List<long>(), nto = new List<long>();
-                ArrayList lrcs = new ArrayList();
-                lrcs.Add(new pairls(0, "", -1, -1));
+                ArrayList lrcs = new ArrayList
+                {
+                    new pairls(0, "", -1, -1)
+                };
                 for (int trk = 0; trk < trkcnt; trk++)
                 {
                     int bpmcnt = 0;
@@ -559,7 +593,7 @@ namespace CJCMCG_Tool
                                 Encoding gb2312 = Encoding.GetEncoding("GBK");
                                 Encoding def = Encoding.GetEncoding("UTF-8");
                                 lrccnt++;
-                                int ff = (int)getnum();
+                                int ff = getnum();
                                 byte[] S = new byte[ff];
                                 int cnt = 0;
                                 while (ff-- > 0)
@@ -652,17 +686,29 @@ namespace CJCMCG_Tool
                 long xi = noteall;
                 List<byte> list = new List<byte>();
                 bool started = false;
-                if (xi == 0) list.Add(0);
+                if (xi == 0)
+                {
+                    list.Add(0);
+                }
+
                 while (xi > 0)
                 {
                     byte nx = (byte)(xi % 128);
                     xi /= 128;
-                    if (started) nx += 128;
+                    if (started)
+                    {
+                        nx += 128;
+                    }
+
                     started = true;
                     list.Add(nx);
                 }
                 list.Reverse();
-                for (int j = 0; j < list.Count; j++) outs.WriteByte(list[j]);
+                for (int j = 0; j < list.Count; j++)
+                {
+                    outs.WriteByte(list[j]);
+                }
+
                 int mids = nts.Count;
                 outs.WriteByte((byte)(mids / 256 / 256 / 256));
                 outs.WriteByte((byte)(mids / 256 / 256 % 256));
@@ -673,30 +719,53 @@ namespace CJCMCG_Tool
                     long x = nts[i], y = nto[i];
                     list = new List<byte>();
                     started = false;
-                    if (x == 0) list.Add(0);
+                    if (x == 0)
+                    {
+                        list.Add(0);
+                    }
+
                     while (x > 0)
                     {
                         byte nx = (byte)(x % 128);
                         x /= 128;
-                        if (started) nx += 128;
+                        if (started)
+                        {
+                            nx += 128;
+                        }
+
                         started = true;
                         list.Add(nx);
                     }
                     list.Reverse();
-                    for (int j = 0; j < list.Count; j++) outs.WriteByte(list[j]);
+                    for (int j = 0; j < list.Count; j++)
+                    {
+                        outs.WriteByte(list[j]);
+                    }
+
                     started = false;
                     list.Clear();
-                    if (y == 0) list.Add(0);
+                    if (y == 0)
+                    {
+                        list.Add(0);
+                    }
+
                     while (y > 0)
                     {
                         byte ny = (byte)(y % 128);
                         y /= 128;
-                        if (started) ny += 128;
+                        if (started)
+                        {
+                            ny += 128;
+                        }
+
                         started = true;
                         list.Add(ny);
                     }
                     list.Reverse();
-                    for (int j = 0; j < list.Count; j++) outs.WriteByte(list[j]);
+                    for (int j = 0; j < list.Count; j++)
+                    {
+                        outs.WriteByte(list[j]);
+                    }
                 }
                 outs.Flush();
                 outs.Close();
